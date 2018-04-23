@@ -1,0 +1,20 @@
+{# Just a quick e-mail example :) #}
+<html>
+    <body>
+        <table>
+            <tr>
+                <th>{{ 'URL'|trans }}</th>
+                <th>{{ 'Result'|trans }}</th>
+                <th>{{ 'Unit'|trans }}</th>
+            </tr>
+            {% for singleResult in [results.mainWebsiteResult]|merge(results.websitesResults) %}
+            <tr>
+                <td>{{ singleResult.website.url }}</td>
+                <td>{{ singleResult.result.value }}</td>
+                <td>{{ singleResult.result.unit }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>
+

@@ -1,0 +1,14 @@
+version: '3'
+services:
+  app:
+    build: .
+    volumes:
+      - '..:/app:cached'
+    working_dir: /app
+    environment:
+      XDEBUG_CONFIG: 'remote_autostart=1 remote_host=${XDEBUG_HOST} remote_enable=1'
+
+  mailcatcher:
+    image: schickling/mailcatcher
+    ports:
+      - '${MAILCATCHER_PORT}:1080'

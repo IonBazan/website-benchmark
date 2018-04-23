@@ -1,0 +1,60 @@
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
+parameters:
+    locale: 'en'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        public: false       # Allows optimizing the container by removing unused services; this also means
+                            # fetching services directly from the container via $container->get() won't work.
+                            # The best practice is to be explicit about your dependencies anyway.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/*'
+        exclude: '../src/{Entity,Migrations,Tests,DTO,Kernel.php}'
+
+    # controllers are imported separately to make sure services can be injected
+    # as action arguments even if you don't extend any base controller class
+#    App\Controller\:
+#        resource: '../src/Controller'
+#        tags: ['controller.service_arguments']
+
+    App\Benchmark\Reporter\EmailReporter:
+        arguments:
+            $recipient: '%env(EMAIL_RECIPIENT)%'
+        calls:
+            - [setLogger, ['@logger']]
+
+    App\Benchmark\Reporter\SMSReporter:
+        arguments:
+            $recipient: '%env(SMS_RECIPIENT)%'
+
+    app.reporter.sms_twice_as_slow:
+        class: App\Benchmark\Reporter\AnyOfConditionalDecorator
+        arguments:
+            $decoratedReporter: '@App\Benchmark\Reporter\SMSReporter'
+            $condition: 'my.getResult().getValue() > 2 * competitor.getResult().getValue()'
+        tags: ['result_reporter']
+
+    app.reporter.email_slower:
+        class: App\Benchmark\Reporter\AnyOfConditionalDecorator
+        arguments:
+            $decoratedReporter: '@App\Benchmark\Reporter\EmailReporter'
+            $condition: 'my.getResult().getValue() > competitor.getResult().getValue()'
+        tags: ['result_reporter']
+
+    App\Service\ResultsReporter:
+        arguments: [!tagged 'result_reporter']
+
+    App\Command\BenchmarkCommand:
+        calls:
+            - [setLogger, ['@logger']]
+
+    App\SMS\DummySMSSender:
+        calls:
+            - [setLogger, ['@logger']]
