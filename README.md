@@ -5,7 +5,6 @@ This application compares your website to some competitors and notifies you when
 ## Installation
 Make sure you have latest Docker and Docker-Compose binaries.
 ```bash
-cp .env.dist .env
 cp docker/.env.dist docker/.env
 cd docker
 docker-compose up -d
